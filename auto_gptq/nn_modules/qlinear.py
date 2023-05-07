@@ -93,7 +93,7 @@ class QuantLinear(nn.Module):
             W = W.t()
 
         self.g_idx = g_idx.clone() if g_idx is not None else self.g_idx
-        with torch.autocast():
+        with torch.autocast(device=W.device):
             scales = scales.t().contiguous()
             zeros = zeros.t().contiguous()
             scale_zeros = zeros * scales
@@ -188,7 +188,8 @@ class QuantLinear(nn.Module):
         self.qzeros = torch.from_numpy(qzeros)
 
     def forward(self, x: torch.Tensor):
-        with torch.autocast():
+        device_type = "cuda" if x.is_cuda else "cpu"
+        with torch.autocast(device_type=device_type):
             out_shape = x.shape[:-1] + (self.outfeatures,)
             x = x.reshape(-1, x.shape[-1])
             if self.quant_cuda_available and (
